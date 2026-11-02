@@ -1,20 +1,17 @@
 import Link from "next/link";
 import { ArrowLeft, Pencil, Plus, Sparkles } from "lucide-react";
-import { addPhaseAction, archiveProjectAction, commentAction, deleteProjectAction } from "@/app/(app)/actions";
-import { uploadEvidenceAction } from "@/app/(app)/evidence-actions";
+import { archiveProjectAction, commentAction, deleteProjectAction } from "@/app/(app)/actions";
 import { OriginBadge, PriorityBadge, ProjectStatusBadge, StatusBadge } from "@/components/badges";
-import { EvidenceList } from "@/components/EvidenceList";
 import { ActionForm, Submit } from "@/components/forms";
 import { Input, LinkButton } from "@/components/fields";
 import { Gantt } from "@/components/Gantt";
-import { Badge, Card, CardHeader, Empty, Insufficient, Kpi, Progress } from "@/components/ui";
-import { fmtDate, hrs, pct } from "@/lib/format";
+import { Badge, Card, CardHeader, Empty, Insufficient, Kpi } from "@/components/ui";
+import { fmtDate, pct } from "@/lib/format";
 import { ctx } from "@/server/context";
 import { timeline } from "@/server/services/logbook";
 import { todayIn } from "@/server/services/metrics";
 import { getProject } from "@/server/services/projects";
 import { getSetting } from "@/server/services/settings";
-import { ACCEPT_ATTR } from "@/server/services/evidence-rules";
 import { Timeline } from "@/components/Timeline";
 
 export const metadata = { title: "Proyecto" };
@@ -28,18 +25,13 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
   const p = d.project;
   const m = d.metrics;
   const canManage = c.scope !== "own";
-  const phaseName = new Map(d.phases.map((ph) => [ph.id, ph.name]));
   const byActivity = new Map<string, (typeof d.items)[number] & { who: string[] }>();
   for (const i of d.items) {
     const cur = byActivity.get(i.activityId);
     if (cur) cur.who.push(i.memberName);
     else byActivity.set(i.activityId, { ...i, who: [i.memberName] });
   }
-  const acts = [...byActivity.values()].sort((a, b) => {
-    const pa = d.phases.findIndex((x) => x.id === a.phaseId);
-    const pb = d.phases.findIndex((x) => x.id === b.phaseId);
-    return (pa === -1 ? 999 : pa) - (pb === -1 ? 999 : pb) || String(a.startDate ?? a.dueDate ?? "").localeCompare(String(b.startDate ?? b.dueDate ?? ""));
-  });
+  const acts = [...byActivity.values()].sort((a, b) => String(a.startDate ?? a.dueDate ?? "").localeCompare(String(b.startDate ?? b.dueDate ?? "")));
   const log = await timeline(c, { projectId: id, limit: 40 });
 
   return (
@@ -89,31 +81,29 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
               today={today}
               projectStart={p.startDate}
               projectEnd={p.dueDate}
-              rows={acts.map((a) => ({ id: a.activityId, title: a.title, start: a.startDate, end: a.dueDate, status: a.status, overdue: a.overdue, group: a.phaseId ? phaseName.get(a.phaseId) ?? null : null, who: a.who.join(", ") }))}
+              rows={acts.map((a) => ({ id: a.activityId, title: a.title, start: a.startDate, end: a.dueDate, status: a.status, overdue: a.overdue, who: a.who.join(", ") }))}
             />
           </div>
         </Card>
 
         <Card className="xl:col-span-2">
-          <CardHeader title="Actividades del proyecto" subtitle="De todos los colaboradores, agrupadas por fase" />
+          <CardHeader title="Actividades del proyecto" subtitle="De todos los colaboradores, por fecha" />
           {acts.length ? (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-[13px]">
                 <thead className="text-2xs uppercase tracking-wide text-slate-500">
                   <tr className="border-b border-line">
-                    <th className="px-4 py-2 font-medium">Actividad</th><th className="px-3 py-2 font-medium">Fase</th><th className="px-3 py-2 font-medium">Responsable</th>
-                    <th className="px-3 py-2 font-medium">Tipo</th><th className="px-3 py-2 font-medium">Estado</th><th className="px-3 py-2 text-right font-medium">Est.</th><th className="px-4 py-2 text-right font-medium">Límite</th>
+                    <th className="px-4 py-2 font-medium">Actividad</th><th className="px-3 py-2 font-medium">Responsable</th>
+                    <th className="px-3 py-2 font-medium">Tipo</th><th className="px-3 py-2 font-medium">Estado</th><th className="px-4 py-2 text-right font-medium">Límite</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {acts.map((a) => (
                     <tr key={a.activityId}>
                       <td className="px-4 py-2.5"><Link href={`/actividades/${a.activityId}`} className="font-medium text-navy-900 hover:underline">{a.title}</Link></td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600">{a.phaseId ? phaseName.get(a.phaseId) : "—"}</td>
                       <td className="px-3 py-2.5 text-xs text-slate-600">{a.who.join(", ")}</td>
                       <td className="px-3 py-2.5"><OriginBadge origin={a.origin} /></td>
                       <td className="px-3 py-2.5"><StatusBadge status={a.status} overdue={a.overdue} /></td>
-                      <td className="tabular px-3 py-2.5 text-right text-xs text-slate-600">{hrs(a.estimatedH)}</td>
                       <td className={`tabular px-4 py-2.5 text-right text-xs ${a.overdue ? "font-medium text-bad-700" : "text-slate-600"}`}>{fmtDate(a.dueDate)}</td>
                     </tr>
                   ))}
@@ -126,29 +116,6 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
         </Card>
 
         <div className="space-y-4">
-          <Card>
-            <CardHeader title="Fases" />
-            <ul className="divide-y divide-line">
-              {d.phases.map((ph) => {
-                const items = acts.filter((a) => a.phaseId === ph.id);
-                const doneN = items.filter((a) => a.status === "completada").length;
-                return (
-                  <li key={ph.id} className="px-4 py-2.5">
-                    <div className="flex justify-between text-[13px]"><span className="text-navy-900">{ph.name}</span><span className="tabular text-xs text-slate-500">{doneN}/{items.length}</span></div>
-                    <div className="mt-1.5"><Progress value={items.length ? (doneN / items.length) * 100 : 0} tone="ok" /></div>
-                  </li>
-                );
-              })}
-              {!d.phases.length && <li className="px-4 py-3 text-xs text-slate-500">Sin fases.</li>}
-            </ul>
-            {canManage && (
-              <ActionForm action={addPhaseAction} resetOnOk className="flex gap-2 border-t border-line px-4 py-3">
-                <input type="hidden" name="projectId" value={id} />
-                <Input name="name" placeholder="Nueva fase" required className="!mt-0 !py-1.5" />
-                <Submit variant="soft">Agregar</Submit>
-              </ActionForm>
-            )}
-          </Card>
           <Card>
             <CardHeader title="Participantes" />
             <ul className="space-y-1 px-4 py-3 text-[13px]">
@@ -167,18 +134,7 @@ export default async function ProjectDetail({ params }: { params: Promise<{ id: 
           )}
         </div>
 
-        <Card className="xl:col-span-2">
-          <CardHeader title="Evidencias del proyecto" />
-          <EvidenceList items={d.evidence} tz={tz} />
-          <ActionForm action={uploadEvidenceAction} resetOnOk className="flex flex-wrap items-end gap-2 border-t border-line px-4 py-3">
-            <input type="hidden" name="projectId" value={id} />
-            <input type="file" name="file" required accept={ACCEPT_ATTR} className="block max-w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-navy-50 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-navy-800" />
-            <Input name="description" placeholder="Descripción" className="!mt-0 min-w-[160px] flex-1 !py-1.5" />
-            <Submit variant="soft">Subir</Submit>
-          </ActionForm>
-        </Card>
-
-        <Card>
+        <Card className="xl:col-span-3">
           <CardHeader title="Línea de tiempo" subtitle="Bitácora automática del proyecto" />
           <Timeline items={log} tz={tz} />
           <ActionForm action={commentAction} resetOnOk className="flex gap-2 border-t border-line px-4 py-3">

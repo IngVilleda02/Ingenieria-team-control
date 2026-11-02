@@ -1,8 +1,10 @@
 # Ingeniería Team Control
 
-Centro de control para administrar tus proyectos, tus actividades personales y las de tus tres colaboradores. Distingue actividades **personales**, **habituales** y **extraordinarias**, mide cada tipo por separado, controla la carga de trabajo por turno, guarda evidencias y genera reportes. Incluye un asistente de IA que solo propone: nada se guarda sin tu aprobación.
+Centro de control para administrar tus proyectos, tus actividades personales y las de tus tres colaboradores. Distingue actividades **personales**, **habituales** y **extraordinarias** y mide el cumplimiento de cada persona. Incluye un asistente de IA que solo propone: nada se guarda sin tu aprobación.
 
-**Versión 1.0.0 · las 8 fases terminadas · 41 pruebas automáticas aprobadas.**
+**Versión 1.1.0 · 42 pruebas automáticas aprobadas.**
+
+**Cambios 1.1 (Modi.xlsx):** dashboard reducido a actividades de hoy, actividades planeadas, avance de proyectos y cumplimiento individual · Mi día con alta rápida (solo título, queda a tu nombre) · proyectos sin fases ni evidencias · actividades sin horas estimadas y con su descripción visible · Mi equipo sin turnos ni tiempo invertido · se quitaron las secciones Evidencias, Indicadores y Reportes · logo nuevo.
 
 ---
 
@@ -72,7 +74,7 @@ En la laptop, copia `.env.example` como `.env.local` para cambiarlas.
 ```bash
 npm install
 npm run dev          # http://localhost:3000 con recarga
-npm test             # 41 pruebas (PostgreSQL real en memoria)
+npm test             # 42 pruebas (PostgreSQL real en memoria)
 npm run typecheck
 npm run db:generate  # tras cambiar src/db/schema.ts
 npm run demo:seed    # regenera la base de demostración

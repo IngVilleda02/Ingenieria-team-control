@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { ArrowLeft, Clock, FileText, History, ListChecks, MessageSquare, Paperclip, Pencil, Plus } from "lucide-react";
+import { ArrowLeft, Clock, FileText, History, ListChecks, MessageSquare, Pencil, Plus } from "lucide-react";
 import {
   cancelActivityAction, checklistAddAction, commentAction, deleteActivityAction, rescheduleAction, statusAction, timeAction,
 } from "@/app/(app)/actions";
-import { uploadEvidenceAction } from "@/app/(app)/evidence-actions";
 import { OriginBadge, PriorityBadge, StatusBadge } from "@/components/badges";
 import { ChecklistItem } from "@/components/ChecklistItem";
-import { EvidenceList } from "@/components/EvidenceList";
 import { ActionForm, Submit } from "@/components/forms";
 import { Input, LinkButton, Select, Textarea } from "@/components/fields";
 import { Badge, Card, CardHeader, Empty, Progress } from "@/components/ui";
@@ -15,7 +13,6 @@ import { ctx } from "@/server/context";
 import { getActivity } from "@/server/services/activities";
 import { isOverdue, todayIn } from "@/server/services/metrics";
 import { getSetting } from "@/server/services/settings";
-import { ACCEPT_ATTR } from "@/server/services/evidence-rules";
 
 export const metadata = { title: "Actividad" };
 
@@ -38,7 +35,6 @@ export default async function ActivityDetail({ params }: { params: Promise<{ id:
             <OriginBadge origin={a.origin} />
             <PriorityBadge priority={a.priority} />
             <Badge>Complejidad {a.complexity}/5</Badge>
-            {a.evidenceRequired && <Badge tone="warn">Requiere evidencia</Badge>}
           </div>
           <h1 className="text-xl font-semibold tracking-tight text-navy-900">{a.title}</h1>
           {d.project && <Link href={`/proyectos/${d.project.id}`} className="mt-1 inline-block text-xs text-sky-600 hover:underline">{d.project.name}</Link>}
@@ -64,12 +60,11 @@ export default async function ActivityDetail({ params }: { params: Promise<{ id:
         <div className="space-y-4 xl:col-span-2">
           <Card>
             <CardHeader title="Detalle" />
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-4 text-[13px] sm:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-4 text-[13px] sm:grid-cols-3">
               {[
                 ["Asignada", fmtDateTime(a.assignedAt, tz)],
                 ["Inicio", fmtDate(a.startDate)],
                 ["Fecha límite", fmtDate(a.dueDate)],
-                ["Estimado", hrs(a.estimatedH)],
               ].map(([k, v]) => (
                 <div key={k}><dt className="text-2xs uppercase tracking-wide text-slate-500">{k}</dt><dd className="mt-0.5 text-navy-900">{v}</dd></div>
               ))}
@@ -148,18 +143,6 @@ export default async function ActivityDetail({ params }: { params: Promise<{ id:
             </ActionForm>
           </Card>
 
-          <Card>
-            <CardHeader title="Evidencias" action={<Paperclip className="h-4 w-4 text-slate-400" />} />
-            <EvidenceList items={d.evidence} tz={tz} />
-            <ActionForm action={uploadEvidenceAction} resetOnOk className="flex flex-wrap items-end gap-2 border-t border-line px-4 py-3">
-              <input type="hidden" name="activityId" value={id} />
-              {d.project && <input type="hidden" name="projectId" value={d.project.id} />}
-              <input type="hidden" name="memberId" value={d.assignments.find((x) => !x.memberIsAdmin)?.a.memberId ?? d.assignments[0]?.a.memberId ?? ""} />
-              <input type="file" name="file" required accept={ACCEPT_ATTR} className="block max-w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-navy-50 file:px-2.5 file:py-1.5 file:text-xs file:font-medium file:text-navy-800" />
-              <Input name="description" placeholder="Descripción" className="!mt-0 min-w-[160px] flex-1 !py-1.5" />
-              <Submit variant="soft">Subir</Submit>
-            </ActionForm>
-          </Card>
         </div>
 
         <div className="space-y-4">

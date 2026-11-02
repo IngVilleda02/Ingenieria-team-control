@@ -1,6 +1,6 @@
 import {
-  Bell, Bot, CalendarDays, ClipboardList, FileBarChart, FolderKanban, Gauge,
-  LayoutDashboard, Paperclip, Settings, Sun, UserPlus, Users, type LucideIcon,
+  Bell, Bot, CalendarDays, ClipboardList, FolderKanban,
+  LayoutDashboard, Settings, Sun, UserPlus, Users, type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = {
@@ -13,7 +13,7 @@ export type NavItem = {
   upcoming: string[];
 };
 
-/** Las 13 secciones aprobadas. `ready` indica si ya está construida; el resto se marca pendiente. */
+/** Secciones visibles (Evidencias, Indicadores y Reportes se retiraron a petición del usuario). `ready` indica si ya está construida; el resto se marca pendiente. */
 export const NAV: NavItem[] = [
   { slug: "", label: "Dashboard general", icon: LayoutDashboard, phase: 1, ready: true, summary: "", upcoming: [] },
   { slug: "mi-dia", label: "Mi día", icon: Sun, phase: 2, ready: true,
@@ -37,18 +37,9 @@ export const NAV: NavItem[] = [
   { slug: "asistente", label: "Asistente IA", icon: Bot, phase: 5, ready: true,
     summary: "Consultas y propuestas en lenguaje natural, siempre con tu aprobación.",
     upcoming: ["Generador de checklist por fases", "Instrucciones de asignación con vista previa", "Respuestas con datos reales: registrado, estimado, recomendación", "Proveedor gratuito (Gemini) configurable"] },
-  { slug: "evidencias", label: "Evidencias", icon: Paperclip, phase: 6, ready: true,
-    summary: "Repositorio central de archivos y bitácora cronológica.",
-    upcoming: ["Fotos, PDF, Excel, Word y archivos de programación", "Relación con proyecto, actividad y responsable", "Línea de tiempo por proyecto y persona"] },
   { slug: "recordatorios", label: "Recordatorios", icon: Bell, phase: 7, ready: true,
     summary: "Alertas personales, de proyecto y de equipo.",
     upcoming: ["Avisos 24 h, 3 días, 7 días o fecha personalizada", "Campana de notificaciones", "Alertas automáticas de vencimiento"] },
-  { slug: "indicadores", label: "Indicadores y eficiencia", icon: Gauge, phase: 4, ready: true,
-    summary: "Cumplimiento, eficiencia, carga de trabajo y comparativas justas.",
-    upcoming: ["Cumplimiento habitual y extraordinario por separado", "Carga de trabajo por turno", "Comparativas ponderadas por esfuerzo", "Fecha proyectada de cierre de proyectos"] },
-  { slug: "reportes", label: "Reportes", icon: FileBarChart, phase: 6, ready: true,
-    summary: "Reportes individuales y generales en PDF y Excel.",
-    upcoming: ["Diario, semanal, mensual o por periodo", "Por proyecto y por colaborador"] },
   { slug: "configuracion", label: "Configuración", icon: Settings, phase: 4, ready: true,
     summary: "Turnos, factores de ponderación, IA y respaldos.",
     upcoming: ["Horarios de turno de día y de noche", "Factores de prioridad y complejidad", "Umbrales de carga", "Exportación completa de datos"] },

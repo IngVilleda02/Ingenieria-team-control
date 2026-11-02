@@ -7,7 +7,7 @@ import { moveCardAction } from "@/app/(app)/actions";
 import { STATUS_LABEL, ORIGIN_LABEL, PRIORITY_LABEL } from "@/lib/format";
 
 export type Card = {
-  assignmentId: string; activityId: string; title: string; status: string; origin: string; priority: string;
+  assignmentId: string; activityId: string; title: string; description?: string | null; status: string; origin: string; priority: string;
   memberName: string; projectName: string | null; dueDate: string | null; overdue: boolean; progressPct: number;
 };
 
@@ -65,6 +65,7 @@ export function Kanban({ cards }: { cards: Card[] }) {
                     className={clsx("cursor-grab rounded-lg border bg-white p-2.5 shadow-sm active:cursor-grabbing", c.overdue ? "border-red-200" : "border-line")}
                   >
                     <Link href={`/actividades/${c.activityId}`} className="block text-[13px] font-medium leading-snug text-navy-900 hover:underline">{c.title}</Link>
+                    {c.description && <p className="mt-1 line-clamp-3 whitespace-pre-line text-2xs leading-snug text-slate-600">{c.description}</p>}
                     {c.projectName && <p className="mt-0.5 truncate text-2xs text-slate-500">{c.projectName}</p>}
                     <div className="mt-2 flex flex-wrap items-center gap-1 text-2xs">
                       <span className={clsx("rounded px-1.5 py-0.5", c.origin === "extraordinaria" ? "bg-sky-50 text-sky-600" : c.origin === "personal" ? "bg-navy-50 text-navy-700" : "bg-surface text-slate-600")}>{ORIGIN_LABEL[c.origin]}</span>

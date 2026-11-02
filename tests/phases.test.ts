@@ -122,16 +122,20 @@ describe("Fase 2 · proyectos y actividades", () => {
     await expect(A.updateActivity(c, first.id, { dependsOn: [second.id] })).rejects.toThrow(/ciclo/);
   });
 
-  it("evidencia requerida impide completar; completar fija fin real y 100 %", async () => {
+  it("completar fija fin real y 100 % (las evidencias ya no bloquean)", async () => {
     const a = await A.createActivity(c, { title: "Validar seguridad", origin: "extraordinaria", memberIds: [juan.id], evidenceRequired: true });
     const asg = (await A.getActivity(c, a.id)).assignments[0].a;
-    await expect(A.setAssignmentStatus(c, asg.id, "completada")).rejects.toThrow(/requiere evidencia/);
-    const png = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex");
-    await EV.uploadEvidence(c, new File([png], "foto.png", { type: "image/png" }), { activityId: a.id, memberId: juan.id });
     await A.setAssignmentStatus(c, asg.id, "completada");
     const done = (await A.getActivity(c, a.id)).assignments[0].a;
     expect(done.progressPct).toBe(100);
     expect(done.finishedAt).not.toBeNull();
+  });
+
+  it("una actividad personal siempre queda a nombre de quien la crea", async () => {
+    const a = await A.createActivity(c, { title: "Revisar correo de planta", origin: "personal", memberIds: [] });
+    const asgs = (await A.getActivity(c, a.id)).assignments;
+    expect(asgs).toHaveLength(1);
+    expect(asgs[0].a.memberId).toBe(c.session.memberId);
   });
 
   it("reprogramar queda en historial", async () => {

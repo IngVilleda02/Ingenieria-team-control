@@ -165,6 +165,7 @@ export async function getDashboard(session: Session, scope: Scope) {
     .sort((a, b) => prioRank(b.priority) - prioRank(a.priority))
     .map((r) => ({
       assignmentId: r.assignmentId,
+      activityId: r.activityId,
       title: r.title,
       origin: r.origin,
       priority: r.priority,
@@ -190,8 +191,29 @@ export async function getDashboard(session: Session, scope: Scope) {
   for (const r of rows.filter((r) => isDueSoon(r, today, settings.due_soon_days)))
     alerts.push({ level: "aviso", kind: "Próxima a vencer", text: `${r.title} · ${r.memberName} · ${r.dueDate}` });
 
+  // Actividades planeadas: abiertas con fecha en los próximos 14 días (sin contar las de hoy)
+  const horizon = addDays(today, 14);
+  const planned = rows
+    .filter((r) => !CLOSED.includes(r.status) && !todayRows.includes(r) && (r.startDate ?? r.dueDate) && (r.startDate ?? r.dueDate)! > today && (r.startDate ?? r.dueDate)! <= horizon)
+    .sort((a, b) => String(a.startDate ?? a.dueDate).localeCompare(String(b.startDate ?? b.dueDate)))
+    .slice(0, 30)
+    .map((r) => ({
+      assignmentId: r.assignmentId,
+      activityId: r.activityId,
+      title: r.title,
+      origin: r.origin,
+      priority: r.priority,
+      status: r.status,
+      memberName: r.memberName,
+      isMine: r.memberId === session.memberId,
+      projectName: r.projectName,
+      startDate: r.startDate,
+      dueDate: r.dueDate,
+    }));
+
   return {
     today,
+    planned,
     kpis,
     productivity,
     hasProductivity,

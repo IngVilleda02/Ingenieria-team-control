@@ -166,11 +166,13 @@ async function assertNoCycle(c: Ctx, activityId: string, dependsOn: string[]) {
 
 /** Crea la actividad y una asignación por responsable, en una sola transacción auditada. */
 export async function createActivity(c: Ctx, input: ActivityInput) {
-  const data = activityInput.parse(input);
-  if (data.origin === "personal") {
+  // Una actividad personal siempre es de la cuenta que la crea: se asigna antes de validar.
+  if (input.origin === "personal") {
     if (!c.session.memberId) throw new HttpError(422, "Tu usuario no tiene ficha de persona.");
-    data.memberIds = [c.session.memberId];
-  } else {
+    input = { ...input, memberIds: [c.session.memberId] };
+  }
+  const data = activityInput.parse(input);
+  if (data.origin !== "personal") {
     if (c.scope === "own") throw new HttpError(403, "No puedes asignar actividades a otras personas.");
     for (const m of data.memberIds) await assertMemberVisible(c, m);
   }
@@ -269,10 +271,6 @@ export async function setAssignmentStatus(c: Ctx, assignmentId: string, status: 
   if (!cur) throw new HttpError(404, "Asignación no encontrada.");
   await assertMemberVisible(c, cur.memberId);
   const [act] = await c.db.select().from(A).where(eq(A.id, cur.activityId));
-  if (st === "completada" && act.evidenceRequired) {
-    const ev = await c.db.select({ id: schema.evidence.id }).from(schema.evidence).where(and(eq(schema.evidence.activityId, act.id), isNull(schema.evidence.deletedAt))).limit(1);
-    if (!ev.length) throw new HttpError(422, "Esta actividad requiere evidencia antes de completarse.");
-  }
   if (st === "en_proceso" || st === "completada") {
     const pendingDeps = await c.db
       .select({ title: A.title })

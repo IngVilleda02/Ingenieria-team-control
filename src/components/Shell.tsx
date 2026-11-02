@@ -6,6 +6,7 @@ import { useState } from "react";
 import clsx from "clsx";
 import { Bell, LogOut, Menu, X } from "lucide-react";
 import { NAV } from "@/lib/nav";
+import { Logo } from "@/components/Logo";
 
 export function Shell({ user, unread, children }: { user: { name: string; role: string }; unread: number; children: React.ReactNode }) {
   const pathname = usePathname();
@@ -49,7 +50,7 @@ export function Shell({ user, unread, children }: { user: { name: string; role: 
 
   const brand = (
     <div className="flex h-14 items-center gap-2.5 border-b border-line px-4">
-      <div className="grid h-7 w-7 place-items-center rounded-md bg-navy-800 text-[10px] font-bold tracking-wide text-white">ITC</div>
+      <Logo className="h-7 w-7 shrink-0" />
       <div className="flex-1 leading-tight">
         <p className="text-[13px] font-semibold text-navy-900">Ingeniería</p>
         <p className="text-2xs text-slate-500">Team Control</p>

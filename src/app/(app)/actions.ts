@@ -89,23 +89,27 @@ export async function addPhaseAction(_: ActionState, fd: FormData) {
 // ── Actividades ──────────────────────────────────────────────────────────────
 function activityFromForm(fd: FormData) {
   const checklist = fdStr(fd, "checklist").split("\n").map((l) => l.replace(/^[-*•\s]+/, "").trim()).filter(Boolean);
+  // Fase, horas estimadas y evidencia ya no están en los formularios: solo se envían si vienen,
+  // para que al editar no se borren los valores que ya tenía la actividad.
+  const optional: { phaseId?: string | null; estimatedH?: number | null; evidenceRequired?: boolean } = {};
+  if (fd.has("phaseId")) optional.phaseId = fdOpt(fd, "phaseId");
+  if (fd.has("estimatedH")) optional.estimatedH = num(fd, "estimatedH");
+  if (fd.has("evidenceRequired")) optional.evidenceRequired = fdBool(fd, "evidenceRequired");
   return {
     title: fdStr(fd, "title"),
     description: fdOpt(fd, "description"),
     origin: (fdStr(fd, "origin") || "personal") as "personal",
     projectId: fdOpt(fd, "projectId"),
-    phaseId: fdOpt(fd, "phaseId"),
     parentId: fdOpt(fd, "parentId"),
     priority: (fdStr(fd, "priority") || "media") as "media",
     complexity: num(fd, "complexity") ?? 2,
-    estimatedH: num(fd, "estimatedH"),
     startDate: fdOpt(fd, "startDate"),
     dueDate: fdOpt(fd, "dueDate"),
-    evidenceRequired: fdBool(fd, "evidenceRequired"),
     instructions: fdOpt(fd, "instructions"),
     memberIds: fdAll(fd, "memberIds"),
     dependsOn: fdAll(fd, "dependsOn"),
     checklist,
+    ...optional,
   };
 }
 

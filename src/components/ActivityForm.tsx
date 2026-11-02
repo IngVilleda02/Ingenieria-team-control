@@ -79,14 +79,6 @@ export function ActivityForm({
         <Field label="Proyecto relacionado" hint="Opcional. Con proyecto, cuenta también en el avance del proyecto.">
           <Select name="projectId" defaultValue={defaults.projectId ?? ""} placeholder="Sin proyecto" options={projects.map((p) => ({ value: p.id, label: p.name }))} />
         </Field>
-        <Field label="Fase del proyecto">
-          <Select
-            name="phaseId"
-            defaultValue={defaults.phaseId ?? ""}
-            placeholder="Sin fase"
-            options={phases.map((p) => ({ value: p.id, label: `${projects.find((x) => x.id === p.projectId)?.name ?? ""} · ${p.name}` }))}
-          />
-        </Field>
 
         <Field label="Prioridad">
           <Select name="priority" defaultValue={defaults.priority ?? "media"} options={opts(PRIORITY_LABEL)} />
@@ -100,9 +92,6 @@ export function ActivityForm({
             <Input value={today} readOnly disabled />
           </Field>
         )}
-        <Field label="Tiempo estimado (horas)">
-          <Input name="estimatedH" type="number" min="0" step="0.25" defaultValue={defaults.estimatedH ?? ""} placeholder="Ej. 2.5" />
-        </Field>
         <Field label="Fecha de inicio">
           <Input name="startDate" type="date" defaultValue={defaults.startDate ?? (editing ? "" : today)} />
         </Field>
@@ -126,9 +115,6 @@ export function ActivityForm({
             <Textarea name="checklist" rows={4} defaultValue={defaults.checklist ?? ""} placeholder={"Revisar condiciones de operación\nVerificar entradas del PLC"} />
           </Field>
         )}
-        <div className="md:col-span-2">
-          <Checkbox name="evidenceRequired" label="Requiere evidencia para completarse" defaultChecked={defaults.evidenceRequired} />
-        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 border-t border-line pt-4">

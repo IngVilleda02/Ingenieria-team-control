@@ -5,7 +5,7 @@ import { Kanban } from "@/components/Kanban";
 import { OriginBadge, PriorityBadge, StatusBadge } from "@/components/badges";
 import { FilterBar, Input, LinkButton, MiniSelect, PageHeader } from "@/components/fields";
 import { Card, Empty } from "@/components/ui";
-import { fmtDate, hrs, opts, ORIGIN_LABEL, PRIORITY_LABEL, STATUS_LABEL } from "@/lib/format";
+import { fmtDate, opts, ORIGIN_LABEL, PRIORITY_LABEL, STATUS_LABEL } from "@/lib/format";
 import { ctx } from "@/server/context";
 import { listAssignments } from "@/server/services/activities";
 import { memberOptions } from "@/server/services/members";
@@ -74,23 +74,22 @@ export default async function ActivitiesPage({ searchParams }: { searchParams: S
                     <th className="px-3 py-2 font-medium">Prioridad</th>
                     <th className="px-3 py-2 font-medium">Estado</th>
                     <th className="px-3 py-2 text-right font-medium">Avance</th>
-                    <th className="px-3 py-2 text-right font-medium">Est. / real</th>
                     <th className="px-4 py-2 text-right font-medium">Límite</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {rows.map((r) => (
                     <tr key={r.assignmentId} className="hover:bg-surface/50">
-                      <td className="px-4 py-2.5">
+                      <td className="max-w-md px-4 py-2.5">
                         <Link href={`/actividades/${r.activityId}`} className="font-medium text-navy-900 hover:underline">{r.title}</Link>
-                        {r.projectName && <p className="text-2xs text-slate-500">{r.projectName}</p>}
+                        {r.description && <p className="mt-0.5 line-clamp-2 whitespace-pre-line text-xs text-slate-600">{r.description}</p>}
+                        {r.projectName && <p className="mt-0.5 text-2xs text-slate-500">{r.projectName}</p>}
                       </td>
                       <td className="px-3 py-2.5 text-slate-600">{r.memberIsAdmin ? "Yo" : r.memberName}</td>
                       <td className="px-3 py-2.5"><OriginBadge origin={r.origin} /></td>
                       <td className="px-3 py-2.5"><PriorityBadge priority={r.priority} /></td>
                       <td className="px-3 py-2.5"><StatusBadge status={r.status} overdue={r.overdue} /></td>
                       <td className="tabular px-3 py-2.5 text-right text-slate-600">{r.progressPct}%</td>
-                      <td className="tabular px-3 py-2.5 text-right text-slate-600">{hrs(r.estimatedH)} / {hrs(r.actualH)}</td>
                       <td className={`tabular px-4 py-2.5 text-right ${r.overdue ? "font-medium text-bad-700" : "text-slate-600"}`}>{fmtDate(r.dueDate)}</td>
                     </tr>
                   ))}
