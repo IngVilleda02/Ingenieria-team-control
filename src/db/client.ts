@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import * as schema from "./schema";
+import { databaseUrl } from "./url";
 import type { PgliteDatabase } from "drizzle-orm/pglite";
 
 export type Db = PgliteDatabase<typeof schema>;
@@ -10,7 +11,11 @@ const holder = globalThis as unknown as { __itcDb?: Holder };
 holder.__itcDb ??= {};
 
 async function connect(): Promise<Db> {
-  const url = process.env.DATABASE_URL?.trim();
+  const url = databaseUrl();
+  if (!url && process.env.VERCEL) {
+    // En Vercel el disco es de solo lectura: sin base en la nube los datos se perderían.
+    throw new Error("Falta DATABASE_URL: conecta una base Neon en Vercel → Storage.");
+  }
 
   if (url) {
     // Nube (Vercel + Neon). Las migraciones se aplican en el build (npm run db:migrate).

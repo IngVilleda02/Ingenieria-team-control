@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "@/db/client";
+import { databaseUrl } from "@/db/url";
 import { HttpError } from "./errors";
 import { scopeFor, type PermissionCode, type RoleCode, type Scope } from "./permissions";
 
@@ -22,7 +23,7 @@ function secret(): Uint8Array {
   if (cachedSecret) return cachedSecret;
   let value = process.env.AUTH_SECRET?.trim();
   if (!value) {
-    if (process.env.DATABASE_URL?.trim()) {
+    if (databaseUrl()) {
       throw new Error("AUTH_SECRET es obligatorio cuando se usa una base en la nube.");
     }
     const file = path.join(process.cwd(), "data", "auth-secret");

@@ -7,6 +7,7 @@ import { fmtDateTime, WEEKDAYS } from "@/lib/format";
 import { aiStatus } from "@/ai/provider";
 import { getDb, schema } from "@/db/client";
 import { ctx } from "@/server/context";
+import { databaseUrl } from "@/db/url";
 import { PERMISSIONS, ROLE_NAMES, type RoleCode } from "@/server/permissions";
 import { listMembers } from "@/server/services/members";
 import { getSettings } from "@/server/services/settings";
@@ -27,7 +28,7 @@ export default async function SettingsPage() {
   const [users, members] = await Promise.all([listUsers(c), listMembers(c)]);
   const ai = aiStatus();
   const matrix = roleMatrix();
-  const cloud = !!process.env.DATABASE_URL;
+  const cloud = !!databaseUrl();
 
   return (
     <>

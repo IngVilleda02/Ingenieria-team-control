@@ -14,6 +14,7 @@ const DIR = process.env.PGLITE_DIR ?? path.join(process.cwd(), "data", "demo");
 process.env.PGLITE_DIR = DIR;
 process.env.EVIDENCE_DIR ??= path.join(path.dirname(DIR), "demo-evidence");
 delete process.env.DATABASE_URL;
+delete process.env.POSTGRES_URL;
 
 async function main() {
   if (fs.existsSync(DIR)) fs.rmSync(DIR, { recursive: true, force: true });
