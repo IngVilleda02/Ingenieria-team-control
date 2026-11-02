@@ -14,18 +14,25 @@ export const DEFAULT_SETTINGS = {
 
 export type Settings = typeof DEFAULT_SETTINGS;
 
+/** La configuración casi nunca cambia: se guarda 60 s en memoria para no consultar la base en cada pantalla. */
+const SETTINGS_TTL_MS = 60_000;
+let cached: { value: Settings; at: number } | null = null;
+export function invalidateSettings() {
+  cached = null;
+}
+
 export async function getSettings(): Promise<Settings> {
+  if (cached && Date.now() - cached.at < SETTINGS_TTL_MS) return cached.value;
   const db = await getDb();
   const rows = await db.select().from(schema.setting);
   const out = structuredClone(DEFAULT_SETTINGS) as Record<string, unknown>;
   for (const r of rows) out[r.key] = r.value;
-  return out as Settings;
+  cached = { value: out as Settings, at: Date.now() };
+  return cached.value;
 }
 
 export async function getSetting<K extends keyof Settings>(key: K): Promise<Settings[K]> {
-  const db = await getDb();
-  const [r] = await db.select().from(schema.setting).where(eq(schema.setting.key, key));
-  return (r?.value as Settings[K]) ?? DEFAULT_SETTINGS[key];
+  return (await getSettings())[key];
 }
 
 // ── Edición (solo administrador) ─────────────────────────────────────────────
@@ -53,6 +60,7 @@ export async function saveSettings(c: Ctx, input: z.input<typeof factorSchema>) 
     }
     await audit(tx, { userId: c.session.userId, entityType: "setting", action: "settings", before, after: d });
   });
+  invalidateSettings();
 }
 
 export async function saveShiftDefinitions(c: Ctx, defs: { kind: "dia" | "noche"; startTime: string; hours: number; breakMin: number }[], workdays: number[]) {

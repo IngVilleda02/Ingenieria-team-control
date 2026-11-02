@@ -156,8 +156,12 @@ export async function generateRoutineInstances(c: Ctx, from: string, to: string)
 }
 
 /** Genera la semana actual y la siguiente si faltan (se llama al abrir Mi equipo/Asignaciones). */
-export async function ensureRoutinesGenerated(c: Ctx) {
+const ROUTINES_EVERY_MS = 6 * 3600_000;
+const routineState = globalThis as unknown as { __itcRoutinesAt?: number };
+export async function ensureRoutinesGenerated(c: Ctx, force = false) {
   if (c.scope !== "all") return 0;
+  if (!force && routineState.__itcRoutinesAt && Date.now() - routineState.__itcRoutinesAt < ROUTINES_EVERY_MS) return 0;
+  routineState.__itcRoutinesAt = Date.now();
   const today = todayIn(await getSetting("timezone"));
   return generateRoutineInstances(c, today, addDays(mondayOf(today), 13));
 }

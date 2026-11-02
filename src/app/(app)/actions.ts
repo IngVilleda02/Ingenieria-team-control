@@ -221,7 +221,7 @@ export async function addRoutineAction(_: ActionState, fd: FormData) {
         priority: (fdStr(fd, "priority") || "media") as "media",
         complexity: num(fd, "complexity") ?? 2,
       });
-      const n = await members.ensureRoutinesGenerated(c);
+      const n = await members.ensureRoutinesGenerated(c, true);
       return `Actividad habitual agregada. ${n} instancias generadas para estas dos semanas.`;
     },
   );
@@ -243,5 +243,5 @@ export async function timeOffAction(_: ActionState, fd: FormData) {
   return run("member.manage", (c) => members.addTimeOff(c, fdStr(fd, "memberId"), fdStr(fd, "dateFrom"), fdStr(fd, "dateTo"), fdOpt(fd, "reason")), "Ausencia registrada.");
 }
 export async function generateRoutinesAction(_: ActionState) {
-  return run("member.manage", async (c) => `${await members.ensureRoutinesGenerated(c)} actividades habituales generadas.`);
+  return run("member.manage", async (c) => `${await members.ensureRoutinesGenerated(c, true)} actividades habituales generadas.`);
 }

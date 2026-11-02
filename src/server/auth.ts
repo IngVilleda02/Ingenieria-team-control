@@ -73,17 +73,23 @@ export async function destroySession() {
 }
 
 /** Lee y verifica la sesión; además confirma que el usuario siga activo en la base. */
+/** Estado «activo» del usuario en memoria 60 s: evita una consulta a la base por cada clic. */
+const ACTIVE_TTL_MS = 60_000;
+const activeCache = new Map<string, { active: boolean; at: number }>();
+
 export async function getSession(): Promise<Session | null> {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
-    const db = await getDb();
-    const [u] = await db
-      .select({ isActive: schema.appUser.isActive })
-      .from(schema.appUser)
-      .where(eq(schema.appUser.id, String(payload.sub)));
-    if (!u?.isActive) return null;
+    const uid = String(payload.sub);
+    const hit = activeCache.get(uid);
+    if (!hit || Date.now() - hit.at > ACTIVE_TTL_MS) {
+      const db = await getDb();
+      const [u] = await db.select({ isActive: schema.appUser.isActive }).from(schema.appUser).where(eq(schema.appUser.id, uid));
+      activeCache.set(uid, { active: !!u?.isActive, at: Date.now() });
+    }
+    if (!activeCache.get(uid)!.active) return null;
     return {
       userId: String(payload.sub),
       memberId: (payload.memberId as string | null) ?? null,

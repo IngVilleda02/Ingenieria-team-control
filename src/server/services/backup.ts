@@ -6,6 +6,7 @@ import { sql } from "drizzle-orm";
 import { audit } from "../audit";
 import type { Ctx } from "../context";
 import { HttpError } from "../errors";
+import { invalidateSettings } from "./settings";
 
 /** Orden de inserción que respeta las llaves foráneas. */
 export const TABLES = [
@@ -44,4 +45,5 @@ export async function restoreAll(c: Ctx, dump: unknown, confirm: string) {
     }
     await audit(tx, { userId: c.session.userId, entityType: "system", action: "restore", after: { exportedAt: (d as { exportedAt?: string }).exportedAt } });
   });
+  invalidateSettings();
 }

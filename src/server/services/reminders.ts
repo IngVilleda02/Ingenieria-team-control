@@ -170,3 +170,13 @@ export async function markRead(c: Ctx, ids: string[] | "all") {
     .set({ readAt: new Date() })
     .where(and(eq(N.userId, c.session.userId), isNull(N.readAt), ids === "all" ? undefined : inArray(N.id, ids.length ? ids : ["00000000-0000-0000-0000-000000000000"])));
 }
+
+/** Al navegar, revisar alertas como máximo cada 15 min: menos consultas y la base puede suspenderse antes. */
+const SYNC_EVERY_MS = 15 * 60_000;
+const syncState = globalThis as unknown as { __itcLastSync?: number };
+export async function syncNotificationsThrottled(db?: Db) {
+  const now = Date.now();
+  if (syncState.__itcLastSync && now - syncState.__itcLastSync < SYNC_EVERY_MS) return 0;
+  syncState.__itcLastSync = now;
+  return syncNotifications(db);
+}
