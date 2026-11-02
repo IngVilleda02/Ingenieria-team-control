@@ -33,6 +33,10 @@ Tus datos quedan en la carpeta `data/` (PostgreSQL embebido, sin instalar nada).
    - `AI_API_KEY`: opcional, clave gratuita de Gemini (https://aistudio.google.com → Get API key).
 5. Haz clic en **Deploy**. El build aplica las migraciones solo. Abre la URL → Configuración inicial.
 
+**Despliegue actual:** proyecto `ingenieria-team-control` en el equipo IngVilleda de Vercel, conectado al repositorio de GitHub. Cada `git push` a `main` vuelve a desplegar. Base Neon y Blob `ingenieria-evidencias` ya conectados.
+
+**Ahorro de consumo en Neon (plan gratuito):** la base se suspende sola cuando no hay consultas. Para que eso pase más seguido, la app guarda la configuración y el estado de la sesión 60 s en memoria, revisa las alertas al navegar como máximo cada 15 minutos (y una vez al día con el cron), y genera las actividades habituales como máximo cada 6 horas. La pantalla Recordatorios siempre revisa al momento.
+
 La base de la laptop y la de Vercel son independientes. Para pasar tus datos, descarga un respaldo en **Configuración** de la laptop y restáuralo en Vercel. En el plan gratuito de Vercel, cada evidencia puede pesar hasta 4 MB.
 
 ## 3. Variables de entorno
